@@ -29,7 +29,8 @@ public class SmsListenerService extends Service {
             String smsBody = intent.getStringExtra("sms_body");
             processSms(smsBody);
         }
-        return START_NOT_STICKY;
+        // 使用 START_STICKY 确保服务被杀死后自动重启
+        return START_STICKY;
     }
 
     private void processSms(String smsBody) {

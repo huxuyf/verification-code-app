@@ -58,44 +58,74 @@ public class FloatingWindowManager {
             return;
         }
 
-        // 创建悬浮窗视图
-        LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        floatingView = inflater.inflate(R.layout.floating_window, null);
+        try {
+            // 创建悬浮窗视图
+            LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            floatingView = inflater.inflate(R.layout.floating_window, null);
 
-        // 设置验证码文本
-        TextView tvCode = floatingView.findViewById(R.id.tvVerificationCode);
-        tvCode.setText(verificationCode);
+            // 设置验证码文本
+            TextView tvCode = floatingView.findViewById(R.id.tvVerificationCode);
+            tvCode.setText(verificationCode);
 
-        // 设置按钮事件
-        Button btnCopy = floatingView.findViewById(R.id.btnCopy);
-        btnCopy.setOnClickListener(v -> {
-            copyToClipboard(context, verificationCode);
-            Toast.makeText(context, "验证码已复制", Toast.LENGTH_SHORT).show();
-            closeFloatingWindow();
-        });
+            // 设置按钮事件
+            Button btnCopy = floatingView.findViewById(R.id.btnCopy);
+            btnCopy.setOnClickListener(v -> {
+                copyToClipboard(context, verificationCode);
+                Toast.makeText(context, "验证码已复制", Toast.LENGTH_SHORT).show();
+                closeFloatingWindow();
+            });
 
-        TextView btnClose = floatingView.findViewById(R.id.btnClose);
-        btnClose.setOnClickListener(v -> closeFloatingWindow());
+            TextView btnClose = floatingView.findViewById(R.id.btnClose);
+            btnClose.setOnClickListener(v -> closeFloatingWindow());
 
-        // 设置悬浮窗参数
-        params = new WindowManager.LayoutParams(
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                WindowManager.LayoutParams.WRAP_CONTENT,
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ?
-                        WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY :
-                        WindowManager.LayoutParams.TYPE_PHONE,
-                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-                PixelFormat.TRANSLUCENT);
+            // 设置悬浮窗参数
+            int flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE |
+                        WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL |
+                        WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN |
+                        WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS |
+                        WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED;
 
-        params.gravity = Gravity.CENTER;
-        params.x = 0;
-        params.y = 0;
+            // Android 12+ 需要添加额外的标志
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                flags |= WindowManager.LayoutParams.FLAG_LAYOUT_INSET_DECOR;
+            }
 
-        // 添加悬浮窗
-        windowManager.addView(floatingView, params);
+            params = new WindowManager.LayoutParams(
+                    WindowManager.LayoutParams.WRAP_CONTENT,
+                    WindowManager.LayoutParams.WRAP_CONTENT,
+                    Build.VERSION.SDK_INT >= Build.VERSION_CODES.O ?
+                            WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY :
+                            WindowManager.LayoutParams.TYPE_PHONE,
+                    flags,
+                    PixelFormat.TRANSLUCENT);
 
-        // 添加拖动功能
-        addDragListener();
+            params.gravity = Gravity.CENTER;
+            params.x = 0;
+            params.y = 0;
+
+            // 确保悬浮窗在所有应用之上
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                params.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+            } else {
+                params.type = WindowManager.LayoutParams.TYPE_PHONE;
+            }
+
+            // 设置布局参数以确保在锁屏和后台也能显示
+            params.format = PixelFormat.TRANSLUCENT;
+            params.windowAnimations = android.R.style.Animation_Dialog;
+
+            // 添加悬浮窗
+            windowManager.addView(floatingView, params);
+
+            // 添加拖动功能
+            addDragListener();
+
+            android.util.Log.d("FloatingWindow", "悬浮窗显示成功");
+
+        } catch (Exception e) {
+            android.util.Log.e("FloatingWindow", "显示悬浮窗失败", e);
+            Toast.makeText(context, "显示悬浮窗失败: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void addDragListener() {
