@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- 使用 Android 13+ 的系统主题色 -->
+    <color name="colorPrimary">@android:color/system_accent1_500</color>
+    <color name="colorPrimaryDark">@android:color/system_accent1_700</color>
+    <color name="colorAccent">@android:color/system_accent1_200</color>
+
+    <!-- 传统颜色（用于兼容性） -->
     <color name="purple_200">#FFBB86FC</color>
     <color name="purple_500">#FF6200EE</color>
     <color name="purple_700">#FF3700B3</color>
@@ -7,5 +13,10 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="ic_launcher_background">#2196F3</color>
+    <color name="ic_launcher_background">@android:color/system_accent1_500</color>
+
+    <!-- 保留蓝色作为备用（Android 13 以下版本） -->
+    <color name="primary_fallback">#2196F3</color>
+    <color name="primary_dark_fallback">#1976D2</color>
+    <color name="accent_fallback">#FF4081</color>
 </resources>
