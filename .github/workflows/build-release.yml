@@ -26,6 +26,24 @@ jobs:
     - name: 授予执行权限
       run: chmod +x gradlew
 
+    - name: 生成或验证 debug.keystore
+      run: |
+        if [ ! -f "app/debug.keystore" ]; then
+          echo "🔑 生成 debug.keystore..."
+          keytool -genkey -v \
+            -keystore app/debug.keystore \
+            -alias androiddebugkey \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -storepass android \
+            -keypass android \
+            -dname "CN=Android Debug,O=Android,C=US"
+          echo "✅ debug.keystore 已生成"
+        else
+          echo "✅ debug.keystore 已存在"
+        fi
+
     - name: 缓存 Gradle 依赖
       uses: actions/cache@v4
       with:
@@ -35,6 +53,9 @@ jobs:
         key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
         restore-keys: |
           ${{ runner.os }}-gradle-
+
+    - name: 清理旧的构建文件
+      run: ./gradlew clean
 
     - name: 解密签名密钥
       env:
@@ -66,12 +87,22 @@ jobs:
     - name: 构建签名的 Release APK
       run: ./gradlew assembleRelease --stacktrace
 
+    - name: 验证 Release APK
+      run: |
+        if [ -f "app/build/outputs/apk/release/app-release-unsigned.apk" ]; then
+          echo "✅ Release APK 构建成功"
+          ls -lh app/build/outputs/apk/release/app-release-unsigned.apk
+        else
+          echo "❌ Release APK 构建失败"
+          exit 1
+        fi
+
     - name: 重命名 APK
       run: |
         VERSION_NAME=$(grep "versionName" app/build.gradle | head -1 | awk -F'"' '{print $2}')
         VERSION_CODE=$(grep "versionCode" app/build.gradle | head -1 | awk -F' ' '{print $2}')
-        if [ -f "app/build/outputs/apk/release/app-release.apk" ]; then
-          cp app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/verification-code-app-v${VERSION_NAME}-${VERSION_CODE}.apk
+        if [ -f "app/build/outputs/apk/release/app-release-unsigned.apk" ]; then
+          cp app/build/outputs/apk/release/app-release-unsigned.apk app/build/outputs/apk/release/verification-code-app-v${VERSION_NAME}-${VERSION_CODE}.apk
         fi
 
     - name: 上传 Release APK
@@ -94,10 +125,24 @@ jobs:
 
     - name: 生成构建报告
       run: |
-        echo "## Release 构建完成" >> $GITHUB_STEP_SUMMARY
+        echo "## 🎉 Release 构建完成" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "✅ Release APK 已构建并上传" >> $GITHUB_STEP_SUMMARY
+        echo "### 📱 APK 文件信息" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### 下载方式" >> $GITHUB_STEP_SUMMARY
-        echo "1. 在 Actions 页面下载构建产物" >> $GITHUB_STEP_SUMMARY
-        echo "2. 或在 Releases 页面下载（如果推送了标签）" >> $GITHUB_STEP_SUMMARY
+        echo "- **文件名**: verification-code-app-v${VERSION_NAME}-${VERSION_CODE}.apk" >> $GITHUB_STEP_SUMMARY
+        echo "- **位置**: app/build/outputs/apk/release/" >> $GITHUB_STEP_SUMMARY
+        echo "- **签名**: 未签名（需要手动签名）" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📥 下载方式" >> $GITHUB_STEP_SUMMARY
+        echo "1. 在 GitHub Actions 页面下载构建产物" >> $GITHUB_STEP_SUMMARY
+        echo "2. 在 GitHub Releases 页面下载" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### ⚠️ 安装说明" >> $GITHUB_STEP_SUMMARY
+        echo "此 APK 未签名，需要先签名才能安装：" >> $GITHUB_STEP_SUMMARY
+        echo '```bash' >> $GITHUB_STEP_SUMMARY
+        echo '# 使用 jarsigner 签名' >> $GITHUB_STEP_SUMMARY
+        echo 'jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore your-keystore.jks app-release-unsigned.apk your-alias' >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### 📱 系统要求" >> $GITHUB_STEP_SUMMARY
+        echo "- Android 13 (API 33) 及以上" >> $GITHUB_STEP_SUMMARY
