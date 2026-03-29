@@ -20,7 +20,7 @@ chmod +x deploy-to-github.sh
 git init
 
 # 2. 添加远程仓库
-git remote add origin https://github.com/你的用户名/verification-code-app.git
+git remote add origin https://github.com/huxuyf/verification-code-app.git
 
 # 3. 提交代码
 git add .
@@ -106,7 +106,7 @@ base64 -i release-keystore.jks | pbcopy
 
 - [GitHub Actions 官方文档](https://docs.github.com/en/actions)
 - [Android Gradle 插件文档](https://developer.android.com/studio/build)
-- [项目仓库](https://github.com/你的用户名/verification-code-app)
+- [项目仓库](https://github.com/huxuyf/verification-code-app)
 
 ## 💡 提示
 

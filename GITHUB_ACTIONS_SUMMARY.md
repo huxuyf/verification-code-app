@@ -74,7 +74,7 @@ chmod +x deploy-to-github.sh
 git init
 
 # 2. 添加远程仓库
-git remote add origin https://github.com/你的用户名/verification-code-app.git
+git remote add origin https://github.com/huxuyf/verification-code-app.git
 
 # 3. 提交代码
 git add .

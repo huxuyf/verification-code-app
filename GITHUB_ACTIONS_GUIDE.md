@@ -29,7 +29,7 @@ git add .
 git commit -m "Initial commit: Android verification code app"
 
 # 添加远程仓库
-git remote add origin https://github.com/你的用户名/verification-code-app.git
+git remote add origin https://github.com/huxuyf/verification-code-app.git
 
 # 推送到 GitHub
 git branch -M main

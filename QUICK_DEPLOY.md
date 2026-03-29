@@ -62,7 +62,7 @@ git init
 ### 2. 添加远程仓库
 
 ```bash
-git remote add origin https://github.com/你的用户名/verification-code-app.git
+git remote add origin https://github.com/huxuyf/verification-code-app.git
 ```
 
 ### 3. 提交代码
@@ -92,7 +92,7 @@ git push -u origin main
 在 README.md 中添加构建状态徽章：
 
 ```markdown
-![Android CI](https://github.com/你的用户名/verification-code-app/actions/workflows/build-android.yml/badge.svg)
+![Android CI](https://github.com/huxuyf/verification-code-app/actions/workflows/build-android.yml/badge.svg)
 ```
 
 ## 🎯 手动触发构建

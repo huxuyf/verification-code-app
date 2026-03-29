@@ -157,7 +157,7 @@ verification_code_app/
 
 ### 构建状态
 
-![Android CI](https://github.com/你的用户名/verification-code-app/actions/workflows/build-android.yml/badge.svg)
+![Android CI](https://github.com/huxuyf/verification-code-app/actions/workflows/build-android.yml/badge.svg)
 
 ## 注意事项
 
