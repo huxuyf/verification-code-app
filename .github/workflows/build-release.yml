@@ -24,7 +24,7 @@ jobs:
       run: chmod +x gradlew
 
     - name: 缓存 Gradle 依赖
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           ~/.gradle/caches
@@ -72,7 +72,7 @@ jobs:
         fi
 
     - name: 上传 Release APK
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: signed-release-apk
         path: app/build/outputs/apk/release/*.apk
