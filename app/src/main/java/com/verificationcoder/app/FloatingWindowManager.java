@@ -104,6 +104,8 @@ public class FloatingWindowManager {
             private int initialY;
             private float initialTouchX;
             private float initialTouchY;
+            private float dx;
+            private float dy;
 
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -113,12 +115,25 @@ public class FloatingWindowManager {
                         initialY = params.y;
                         initialTouchX = event.getRawX();
                         initialTouchY = event.getRawY();
+                        dx = event.getRawX() - initialTouchX;
+                        dy = event.getRawY() - initialTouchY;
                         return true;
 
                     case MotionEvent.ACTION_MOVE:
                         params.x = initialX + (int) (event.getRawX() - initialTouchX);
                         params.y = initialY + (int) (event.getRawY() - initialTouchY);
                         windowManager.updateViewLayout(floatingView, params);
+                        return true;
+
+                    case MotionEvent.ACTION_UP:
+                        // 如果移动距离很小，认为是点击事件，返回false让按钮处理
+                        float moveDistance = (float) Math.sqrt(
+                                Math.pow(event.getRawX() - initialTouchX, 2) +
+                                Math.pow(event.getRawY() - initialTouchY, 2)
+                        );
+                        if (moveDistance < 10) {
+                            return false;
+                        }
                         return true;
                 }
                 return false;
