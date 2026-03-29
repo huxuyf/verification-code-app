@@ -1,3 +1,4 @@
 {
-    "debug.internalConsoleOptions": "openOnFirstSessionStart"
+    "debug.internalConsoleOptions": "openOnFirstSessionStart",
+    "diffEditor.renderSideBySide": false
 }

@@ -93,26 +93,71 @@ verification_code_app/
 
 ## 编译说明
 
-### 环境要求
+### 方式一：使用 GitHub Actions 自动编译（推荐）
+
+项目已配置 GitHub Actions，可以自动编译 APK 文件。
+
+#### 快速开始
+
+1. **将代码推送到 GitHub**
+
+   使用提供的部署脚本：
+
+   **Windows 用户：**
+   ```bash
+   deploy-to-github.bat
+   ```
+
+   **Linux/Mac 用户：**
+   ```bash
+   chmod +x deploy-to-github.sh
+   ./deploy-to-github.sh
+   ```
+
+2. **触发构建**
+
+   推送代码后，GitHub Actions 会自动开始构建。
+
+3. **下载 APK**
+
+   - 访问 GitHub 仓库的 Actions 页面
+   - 选择最近的工作流运行
+   - 在 "Artifacts" 部分下载 APK 文件
+
+#### 详细的 GitHub Actions 使用说明
+
+请查看 [GITHUB_ACTIONS_GUIDE.md](GITHUB_ACTIONS_GUIDE.md) 了解：
+- 如何配置签名密钥
+- 如何手动触发构建
+- 如何通过标签创建 Release
+- 常见问题解答
+
+### 方式二：本地编译
+
+#### 环境要求
 
 - Android Studio Arctic Fox 或更高版本
 - JDK 8 或更高版本
 - Android SDK API 34
 
-### 编译步骤
+#### 编译步骤
 
 1. 使用 Android Studio 打开项目
 2. 等待 Gradle 同步完成
 3. 点击 Build -> Build Bundle(s) / APK(s) -> Build APK(s)
 4. 编译完成后，APK 文件位于 `app/build/outputs/apk/` 目录
 
-### 生成 Release 版本
+#### 生成 Release 版本
 
 1. 在 `app/build.gradle` 中配置签名信息
 2. 点击 Build -> Generate Signed Bundle / APK
 3. 选择 APK，按照提示完成签名配置
 4. 选择 release 构建类型
 5. 生成签名的 APK 文件
+
+### 构建状态
+
+![Android CI](https://github.com/你的用户名/verification-code-app/actions/workflows/build-android.yml/badge.svg)
 
 ## 注意事项
 
