@@ -3,6 +3,7 @@ package com.verificationcoder.app;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.telephony.SmsMessage;
 import android.util.Log;
@@ -22,8 +23,19 @@ public class SmsReceiver extends BroadcastReceiver {
                 if (pdus != null && pdus.length > 0) {
                     StringBuilder messageBuilder = new StringBuilder();
 
+                    // 获取短信格式（Android 23+需要）
+                    String format = bundle.getString("format");
+
                     for (Object pdu : pdus) {
-                        SmsMessage smsMessage = SmsMessage.createFromPdu((byte[]) pdu);
+                        SmsMessage smsMessage;
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                            // Android 6.0+ 使用新的API
+                            smsMessage = SmsMessage.createFromPdu((byte[]) pdu, format);
+                        } else {
+                            // Android 6.0以下使用旧API
+                            smsMessage = SmsMessage.createFromPdu((byte[]) pdu);
+                        }
+
                         if (smsMessage != null) {
                             messageBuilder.append(smsMessage.getMessageBody());
                         }
