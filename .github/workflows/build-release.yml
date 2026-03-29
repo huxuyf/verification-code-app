@@ -97,12 +97,50 @@ jobs:
           exit 1
         fi
 
+    - name: 签名 Release APK
+      env:
+        KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+      run: |
+        if [ -f "app/release-keystore.jks" ] && [ -n "$KEYSTORE_PASSWORD" ]; then
+          echo "🔑 正在签名 Release APK..."
+          apksigner sign \
+            --ks app/release-keystore.jks \
+            --ks-key-alias "$KEY_ALIAS" \
+            --ks-pass env:KEYSTORE_PASSWORD \
+            --key-pass env:KEY_PASSWORD \
+            --out app/build/outputs/apk/release/app-release-signed.apk \
+            app/build/outputs/apk/release/app-release-unsigned.apk
+
+          if [ $? -eq 0 ]; then
+            echo "✅ APK 签名成功"
+            apksigner verify --print-certs app/build/outputs/apk/release/app-release-signed.apk
+          else
+            echo "❌ APK 签名失败"
+          fi
+        else
+          echo "⚠️ 未配置签名密钥或密码，跳过签名步骤"
+          echo "ℹ️ 如需签名，请在 GitHub Secrets 中配置以下变量："
+          echo "   - KEYSTORE_BASE64"
+          echo "   - KEYSTORE_PASSWORD"
+          echo "   - KEY_ALIAS"
+          echo "   - KEY_PASSWORD"
+        fi
+
     - name: 重命名 APK
       run: |
         VERSION_NAME=$(grep "versionName" app/build.gradle | head -1 | awk -F'"' '{print $2}')
         VERSION_CODE=$(grep "versionCode" app/build.gradle | head -1 | awk -F' ' '{print $2}')
-        if [ -f "app/build/outputs/apk/release/app-release-unsigned.apk" ]; then
-          cp app/build/outputs/apk/release/app-release-unsigned.apk app/build/outputs/apk/release/verification-code-app-v${VERSION_NAME}-${VERSION_CODE}.apk
+
+        if [ -f "app/build/outputs/apk/release/app-release-signed.apk" ]; then
+          # 已签名版本
+          cp app/build/outputs/apk/release/app-release-signed.apk app/build/outputs/apk/release/verification-code-app-v${VERSION_NAME}-${VERSION_CODE}-signed.apk
+          echo "✅ 已生成签名的 APK"
+        elif [ -f "app/build/outputs/apk/release/app-release-unsigned.apk" ]; then
+          # 未签名版本
+          cp app/build/outputs/apk/release/app-release-unsigned.apk app/build/outputs/apk/release/verification-code-app-v${VERSION_NAME}-${VERSION_CODE}-unsigned.apk
+          echo "⚠️ 生成未签名的 APK"
         fi
 
     - name: 上传 Release APK
@@ -125,24 +163,54 @@ jobs:
 
     - name: 生成构建报告
       run: |
+        VERSION_NAME=$(grep "versionName" app/build.gradle | head -1 | awk -F'"' '{print $2}')
+        VERSION_CODE=$(grep "versionCode" app/build.gradle | head -1 | awk -F' ' '{print $2}')
+
         echo "## 🎉 Release 构建完成" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
         echo "### 📱 APK 文件信息" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "- **文件名**: verification-code-app-v${VERSION_NAME}-${VERSION_CODE}.apk" >> $GITHUB_STEP_SUMMARY
-        echo "- **位置**: app/build/outputs/apk/release/" >> $GITHUB_STEP_SUMMARY
-        echo "- **签名**: 未签名（需要手动签名）" >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
+
+        if [ -f "app/build/outputs/apk/release/app-release-signed.apk" ]; then
+          echo "#### ✅ 已签名的版本" >> $GITHUB_STEP_SUMMARY
+          echo "- **文件名**: verification-code-app-v${VERSION_NAME}-${VERSION_CODE}-signed.apk" >> $GITHUB_STEP_SUMMARY
+          echo "- **状态**: 已签名，可以直接安装" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+        fi
+
+        if [ -f "app/build/outputs/apk/release/app-release-unsigned.apk" ]; then
+          echo "#### ⚠️ 未签名的版本" >> $GITHUB_STEP_SUMMARY
+          echo "- **文件名**: verification-code-app-v${VERSION_NAME}-${VERSION_CODE}-unsigned.apk" >> $GITHUB_STEP_SUMMARY
+          echo "- **状态**: 未签名，需要手动签名后才能安装" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+        fi
+
         echo "### 📥 下载方式" >> $GITHUB_STEP_SUMMARY
         echo "1. 在 GitHub Actions 页面下载构建产物" >> $GITHUB_STEP_SUMMARY
         echo "2. 在 GitHub Releases 页面下载" >> $GITHUB_STEP_SUMMARY
         echo "" >> $GITHUB_STEP_SUMMARY
-        echo "### ⚠️ 安装说明" >> $GITHUB_STEP_SUMMARY
-        echo "此 APK 未签名，需要先签名才能安装：" >> $GITHUB_STEP_SUMMARY
-        echo '```bash' >> $GITHUB_STEP_SUMMARY
-        echo '# 使用 jarsigner 签名' >> $GITHUB_STEP_SUMMARY
-        echo 'jarsigner -verbose -sigalg SHA1withRSA -digestalg SHA1 -keystore your-keystore.jks app-release-unsigned.apk your-alias' >> $GITHUB_STEP_SUMMARY
-        echo '```' >> $GITHUB_STEP_SUMMARY
-        echo "" >> $GITHUB_STEP_SUMMARY
+
+        if [ ! -f "app/build/outputs/apk/release/app-release-signed.apk" ]; then
+          echo "### 🔑 手动签名说明" >> $GITHUB_STEP_SUMMARY
+          echo "如需安装未签名的 APK，请先进行签名：" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### 方法 1: 使用自动化脚本" >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY
+          echo '# Linux/Mac' >> $GITHUB_STEP_SUMMARY
+          echo './sign-apk.sh' >> $GITHUB_STEP_SUMMARY
+          echo '' >> $GITHUB_STEP_SUMMARY
+          echo '# Windows' >> $GITHUB_STEP_SUMMARY
+          echo 'sign-apk.bat' >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### 方法 2: 使用 apksigner" >> $GITHUB_STEP_SUMMARY
+          echo '```bash' >> $GITHUB_STEP_SUMMARY
+          echo 'apksigner sign --ks release.keystore --ks-key-alias your-alias --out signed.apk unsigned.apk' >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "详细签名指南请参考: [APK_SIGNING_GUIDE.md](https://github.com/huxuyf/verification-code-app/blob/main/APK_SIGNING_GUIDE.md)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+        fi
+
         echo "### 📱 系统要求" >> $GITHUB_STEP_SUMMARY
         echo "- Android 13 (API 33) 及以上" >> $GITHUB_STEP_SUMMARY
