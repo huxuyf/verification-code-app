@@ -74,14 +74,18 @@ jobs:
         KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
       run: |
-        if [ -n "$KEYSTORE_PASSWORD" ]; then
-          cat > app/keystore.properties << EOF
+        # 检查所有必需的变量是否都已配置
+        if [ -n "$KEYSTORE_PASSWORD" ] && [ -n "$KEY_ALIAS" ] && [ -n "$KEY_PASSWORD" ]; then
+          cat > app/keystore.properties <<EOF
           storePassword=$KEYSTORE_PASSWORD
           keyPassword=$KEY_PASSWORD
           keyAlias=$KEY_ALIAS
           storeFile=release-keystore.jks
-          EOF
+EOF
           echo "✅ keystore.properties 已创建"
+        else
+          echo "⚠️ 签名配置不完整，跳过创建 keystore.properties"
+          echo "ℹ️ 需要配置的 Secrets: KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD"
         fi
 
     - name: 构建签名的 Release APK
