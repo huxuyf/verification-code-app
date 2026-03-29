@@ -7,8 +7,8 @@ setlocal enabledelayedexpansion
 REM 配置
 set KEYSTORE_FILE=release.keystore
 set KEY_ALIAS=verification-coder-app
-set UNSIGNED_APK=app\build\outputs\apk\release\app-release-unsigned.apk
-set SIGNED_APK=app\build\outputs\apk\release\app-release-signed.apk
+set UNSIGNED_APK=app\app-release-unsigned.apk
+set SIGNED_APK=app\app-release-signed.apk
 
 echo =========================================
 echo   APK 自动签名工具 (Windows)
