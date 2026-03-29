@@ -37,7 +37,7 @@ plugins {
 }
 ```
 
-### 错误 2：自适应图标不兼容 API 23
+### 错误 2：自适应图标不兼容 API 33
 
 **错误信息：**
 ```
@@ -47,7 +47,7 @@ ERROR: /home/runner/work/verification-code-app/verification-code-app/app/src/mai
 ```
 
 **原因：**
-- 应用最低支持 API 23（Android 6.0）
+- 应用最低支持 API 33（Android 13）
 - 自适应图标（adaptive-icon）需要 API 26+（Android 8.0）
 - 不兼容导致构建失败
 
@@ -74,7 +74,7 @@ ERROR: /home/runner/work/verification-code-app/verification-code-app/app/src/mai
 | 错误 | 状态 | 修复方式 |
 |------|------|----------|
 | Android Gradle Plugin 版本过低 | ✅ 已修复 | 升级到 8.2.2 |
-| 自适应图标不兼容 API 23 | ✅ 已修复 | 改用普通图标 |
+| 自适应图标不兼容 API 33 | ✅ 已修复 | 改用普通图标 |
 
 ## 📝 修改的文件
 
@@ -102,13 +102,13 @@ ERROR: /home/runner/work/verification-code-app/verification-code-app/app/src/mai
 - Android Gradle Plugin: 8.1.0
 - 支持 compileSdk: 最高 33
 - 图标格式: Adaptive Icon (API 26+)
-- 最低支持: API 23
+- 最低支持: API 33
 
 ### 修复后
 - Android Gradle Plugin: 8.2.2
 - 支持 compileSdk: 34
 - 图标格式: Vector Drawable (API 21+)
-- 最低支持: API 23
+- 最低支持: API 33
 
 ## 🚀 验证修复
 
@@ -143,7 +143,7 @@ ERROR: /home/runner/work/verification-code-app/verification-code-app/app/src/mai
 
 ### Q: 为什么不升级最低 API 到 26？
 
-A: 为了兼容更多设备，特别是 Android 6.0-7.1 的用户。
+A: 为了兼容更多设备，特别是 Android 13-7.1 的用户。
 
 ### Q: 新图标会影响应用外观吗？
 
