@@ -99,6 +99,13 @@ jobs:
           exit 1
         fi
 
+    - name: 设置 Android SDK 路径
+      run: |
+        echo "ANDROID_HOME=$ANDROID_HOME"
+        echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+        # 查找 apksigner 的位置
+        find $ANDROID_HOME -name "apksigner" -type f 2>/dev/null | head -5
+
     - name: 签名 Release APK
       env:
         KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
@@ -107,7 +114,18 @@ jobs:
       run: |
         if [ -f "app/release-keystore.jks" ] && [ -n "$KEYSTORE_PASSWORD" ]; then
           echo "🔑 正在签名 Release APK..."
-          apksigner sign \
+
+          # 查找并使用 apksigner
+          APKSIGNER=$(find $ANDROID_HOME -name "apksigner" -type f 2>/dev/null | head -1)
+
+          if [ -z "$APKSIGNER" ]; then
+            echo "❌ 未找到 apksigner 工具"
+            exit 1
+          fi
+
+          echo "使用 apksigner: $APKSIGNER"
+
+          $APKSIGNER sign \
             --ks app/release-keystore.jks \
             --ks-key-alias "$KEY_ALIAS" \
             --ks-pass env:KEYSTORE_PASSWORD \
@@ -117,9 +135,10 @@ jobs:
 
           if [ $? -eq 0 ]; then
             echo "✅ APK 签名成功"
-            apksigner verify --print-certs app/build/outputs/apk/release/app-release-signed.apk
+            $APKSIGNER verify --print-certs app/build/outputs/apk/release/app-release-signed.apk
           else
             echo "❌ APK 签名失败"
+            exit 1
           fi
         else
           echo "⚠️ 未配置签名密钥或密码，跳过签名步骤"
