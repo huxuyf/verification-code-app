@@ -76,12 +76,10 @@ jobs:
       run: |
         # 检查所有必需的变量是否都已配置
         if [ -n "$KEYSTORE_PASSWORD" ] && [ -n "$KEY_ALIAS" ] && [ -n "$KEY_PASSWORD" ]; then
-          cat > app/keystore.properties <<EOF
-          storePassword=$KEYSTORE_PASSWORD
-          keyPassword=$KEY_PASSWORD
-          keyAlias=$KEY_ALIAS
-          storeFile=release-keystore.jks
-EOF
+          echo "storePassword=$KEYSTORE_PASSWORD" > app/keystore.properties
+          echo "keyPassword=$KEY_PASSWORD" >> app/keystore.properties
+          echo "keyAlias=$KEY_ALIAS" >> app/keystore.properties
+          echo "storeFile=release-keystore.jks" >> app/keystore.properties
           echo "✅ keystore.properties 已创建"
         else
           echo "⚠️ 签名配置不完整，跳过创建 keystore.properties"
