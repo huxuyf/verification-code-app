@@ -39,6 +39,15 @@
             </intent-filter>
         </activity>
 
+        <!-- 验证码显示Activity - 可以在任何界面显示 -->
+        <activity
+            android:name=".VerifyCodeActivity"
+            android:exported="false"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"
+            android:launchMode="singleTask"
+            android:excludeFromRecents="true"
+            android:showOnLockScreen="true" />
+
         <!-- 短信监听服务 -->
         <service
             android:name=".SmsListenerService"

@@ -41,8 +41,11 @@ public class SmsListenerService extends Service {
             String verificationCode = VerificationCodeExtractor.extractCode(smsBody);
             if (verificationCode != null && !verificationCode.isEmpty()) {
                 Log.d(TAG, "提取到验证码: " + verificationCode);
-                // 显示悬浮窗
-                FloatingWindowManager.getInstance().showFloatingWindow(this, verificationCode);
+                // 启动验证码显示Activity，可以在任何界面显示
+                Intent intent = new Intent(this, VerifyCodeActivity.class);
+                intent.putExtra("code", verificationCode);
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(intent);
             } else {
                 Log.d(TAG, "未找到验证码");
             }
