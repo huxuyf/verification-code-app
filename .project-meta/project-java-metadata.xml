@@ -1,0 +1,26 @@
+<project>
+  <properties>
+    <M2_REPOSITORY_PATH>C:/Users/Administrator/.m2/repository</M2_REPOSITORY_PATH>
+  </properties>
+  <name>VerificationCodeApp</name>
+  <jdkInfo/>
+  <languageLevel/>
+  <module>
+    <id>VerificationCodeApp</id>
+    <artifactId>VerificationCodeApp</artifactId>
+    <name>VerificationCodeApp</name>
+    <group></group>
+    <version>unspecified</version>
+    <rootPath></rootPath>
+    <buildDirectory>build</buildDirectory>
+    <module>
+      <id>VerificationCodeApp:app</id>
+      <artifactId>app</artifactId>
+      <name>app</name>
+      <group>VerificationCodeApp</group>
+      <version>unspecified</version>
+      <rootPath>app</rootPath>
+      <buildDirectory>app/build</buildDirectory>
+    </module>
+  </module>
+</project>
