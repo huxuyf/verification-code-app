@@ -44,7 +44,12 @@ public class SmsListenerService extends Service {
                 // 启动验证码显示Activity，可以在任何界面显示
                 Intent intent = new Intent(this, VerifyCodeActivity.class);
                 intent.putExtra("code", verificationCode);
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                // 添加多个标志确保可以在任何界面显示
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                        | Intent.FLAG_ACTIVITY_CLEAR_TOP
+                        | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS
+                        | Intent.FLAG_ACTIVITY_NO_HISTORY
+                        | Intent.FLAG_ACTIVITY_SINGLE_TOP);
                 startActivity(intent);
             } else {
                 Log.d(TAG, "未找到验证码");

@@ -46,7 +46,12 @@
             android:theme="@android:style/Theme.Translucent.NoTitleBar"
             android:launchMode="singleTask"
             android:excludeFromRecents="true"
-            android:showOnLockScreen="true" />
+            android:showOnLockScreen="true"
+            android:showForAllUsers="true"
+            android:taskAffinity=""
+            android:stateNotNeeded="true"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:screenOrientation="portrait" />
 
         <!-- 短信监听服务 -->
         <service
