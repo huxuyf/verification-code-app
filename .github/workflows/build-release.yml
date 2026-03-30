@@ -5,6 +5,10 @@ on:
     branches: [ "main" ] # 当 main 分支有代码提交时触发
   workflow_dispatch: # 允许手动触发
 
+# 设置工作流权限
+permissions:
+  contents: write # 允许写入内容权限（创建Release需要）
+
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
@@ -180,22 +184,23 @@ jobs:
         generate_release_notes: true
         body: |
           ## 🎉 自动构建版本
-          
+
           此版本由 GitHub Actions 自动构建，基于 main 分支的最新代码。
-          
+
           ### 📱 APK 文件
           - 构建产物已自动上传
           - 包含签名版本（如已配置签名）
-          
+
           ### 🔧 构建信息
           - **构建编号**: ${{ github.run_number }}
           - **提交**: ${{ github.sha }}
           - **分支**: ${{ github.ref_name }}
-          
+
           ### 📥 安装说明
           下载 APK 文件后，直接安装即可（如已配置签名）。
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # 无需手动配置，默认自带的权限
+      continue-on-error: false
 
     - name: 生成构建报告
       run: |
