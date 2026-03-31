@@ -18,6 +18,14 @@ class VerifyCodeActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        // 设置窗口类型，确保可以在其他应用之上显示
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            window.setType(WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY)
+        } else {
+            @Suppress("DEPRECATION")
+            window.setType(WindowManager.LayoutParams.TYPE_PHONE)
+        }
+
         // 设置窗口标志，确保可以在任何界面显示
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true)
