@@ -8,7 +8,6 @@ import android.graphics.PixelFormat
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
-import kotlin.math.pow
 import kotlin.math.sqrt
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -162,10 +161,9 @@ class FloatingWindowManager private constructor() {
 
                     MotionEvent.ACTION_UP -> {
                         // 如果移动距离很小，认为是点击事件，返回false让按钮处理
-                        val moveDistance = sqrt(
-                            pow(event.rawX - initialTouchX, 2.0) +
-                                    pow(event.rawY - initialTouchY, 2.0)
-                        ).toFloat()
+                        val dx = event.rawX - initialTouchX
+                        val dy = event.rawY - initialTouchY
+                        val moveDistance = sqrt(dx * dx + dy * dy)
                         if (moveDistance < 10) {
                             return false
                         }
