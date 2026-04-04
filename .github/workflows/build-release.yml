@@ -2,8 +2,9 @@ name: Android Release Build
 
 on:
   push:
-    branches: [ "main" ] # 当 main 分支有代码提交时触发
-  workflow_dispatch: # 允许手动触发
+    tags:
+      - 'v*'
+  workflow_dispatch:
 
 # 设置工作流权限
 permissions:
@@ -177,7 +178,7 @@ jobs:
     - name: 创建 GitHub Release
       uses: softprops/action-gh-release@v1
       with:
-        tag_name: "v1.0.${{ github.run_number }}" # 自动生成递增的版本号，如 v1.0.12
+        tag_name: ${{ github.ref_name }} # 使用推送的 tag 名称作为 Release tag
         files: app/build/outputs/apk/release/*.apk # 指定要上传的编译产物路径
         draft: false
         prerelease: false
