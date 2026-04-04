@@ -13,6 +13,7 @@ import android.widget.Toast
 
 class VerifyCodeActivity : Activity() {
 
+    private lateinit var tvCode: TextView
     private var verifyCode: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,10 +49,8 @@ class VerifyCodeActivity : Activity() {
 
         setContentView(R.layout.activity_verify_code)
 
-        // 获取传递过来的验证码
-        verifyCode = intent.getStringExtra("code")
-        val tvCode = findViewById<TextView>(R.id.tv_code)
-        tvCode.text = verifyCode
+        tvCode = findViewById(R.id.tv_code)
+        handleIntent(intent)
 
         // --- 复制按钮逻辑 ---
         val btnCopy = findViewById<Button>(R.id.btn_copy)
@@ -67,6 +66,19 @@ class VerifyCodeActivity : Activity() {
         // --- 关闭按钮逻辑 ---
         val btnClose = findViewById<Button>(R.id.btn_close)
         btnClose.setOnClickListener { finish() }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleIntent(intent)
+    }
+
+    private fun handleIntent(intent: Intent?) {
+        verifyCode = intent?.getStringExtra("code")
+        if (::tvCode.isInitialized) {
+            tvCode.text = verifyCode
+        }
     }
 
     /**
