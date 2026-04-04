@@ -71,25 +71,14 @@
         android:elevation="4dp" />
 
     <Button
-        android:id="@+id/btnStartService"
+        android:id="@+id/btnServiceToggle"
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:text="开始监听"
         android:textSize="16sp"
         android:textColor="#FFFFFF"
-        android:background="@drawable/start_button_bg"
+        android:background="#4CAF50"
         android:layout_marginBottom="16dp"
-        android:enabled="false"
-        android:elevation="4dp" />
-
-    <Button
-        android:id="@+id/btnStopService"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:text="停止监听"
-        android:textSize="16sp"
-        android:textColor="#FFFFFF"
-        android:background="@drawable/stop_button_bg"
         android:enabled="false"
         android:elevation="4dp" />
 

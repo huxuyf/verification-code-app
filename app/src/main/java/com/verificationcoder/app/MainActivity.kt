@@ -18,8 +18,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var tvStatus: TextView
     private lateinit var btnRequestPermissions: Button
-    private lateinit var btnStartService: Button
-    private lateinit var btnStopService: Button
+    private lateinit var btnServiceToggle: Button
 
     private val overlayPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -60,12 +59,10 @@ class MainActivity : AppCompatActivity() {
     private fun initViews() {
         tvStatus = findViewById(R.id.tvStatus)
         btnRequestPermissions = findViewById(R.id.btnRequestPermissions)
-        btnStartService = findViewById(R.id.btnStartService)
-        btnStopService = findViewById(R.id.btnStopService)
+        btnServiceToggle = findViewById(R.id.btnServiceToggle)
 
         btnRequestPermissions.setOnClickListener { requestAllPermissions() }
-        btnStartService.setOnClickListener { startSmsListenerService() }
-        btnStopService.setOnClickListener { stopSmsListenerService() }
+        btnServiceToggle.setOnClickListener { toggleSmsListenerService() }
     }
 
     private fun updatePermissionStatus() {
@@ -80,11 +77,14 @@ class MainActivity : AppCompatActivity() {
             if (hasSmsPermission && hasOverlayPermission) {
                 append("所有权限已授予，可以开始使用！")
                 btnRequestPermissions.isEnabled = false
-                btnStartService.isEnabled = true
+                btnServiceToggle.isEnabled = true
+                updateServiceToggleButton()
             } else {
                 append("请授予所有权限后开始使用")
                 btnRequestPermissions.isEnabled = true
-                btnStartService.isEnabled = false
+                btnServiceToggle.isEnabled = false
+                btnServiceToggle.text = "开始监听"
+                btnServiceToggle.setBackgroundColor(0xFF4CAF50.toInt())
             }
         }
 
@@ -122,6 +122,36 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun isServiceRunning(): Boolean {
+        val manager = getSystemService(ACTIVITY_SERVICE) as android.app.ActivityManager
+        @Suppress("DEPRECATION")
+        for (service in manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (SmsListenerService::class.java.name == service.service.className) {
+                return true
+            }
+        }
+        return false
+    }
+
+    private fun updateServiceToggleButton() {
+        if (isServiceRunning()) {
+            btnServiceToggle.text = "停止监听"
+            btnServiceToggle.setBackgroundColor(0xFFF44336.toInt()) // Red
+        } else {
+            btnServiceToggle.text = "开始监听"
+            btnServiceToggle.setBackgroundColor(0xFF4CAF50.toInt()) // Green
+        }
+    }
+
+    private fun toggleSmsListenerService() {
+        if (isServiceRunning()) {
+            stopSmsListenerService()
+        } else {
+            startSmsListenerService()
+        }
+        updateServiceToggleButton()
+    }
+
     private fun startSmsListenerService() {
         if (!checkSmsPermission() || !checkOverlayPermission()) {
             Toast.makeText(this, "请先授予所有权限", Toast.LENGTH_SHORT).show()
@@ -136,8 +166,6 @@ class MainActivity : AppCompatActivity() {
         }
 
         Toast.makeText(this, "监听服务已启动", Toast.LENGTH_SHORT).show()
-        btnStartService.isEnabled = false
-        btnStopService.isEnabled = true
     }
 
     private fun stopSmsListenerService() {
@@ -145,8 +173,6 @@ class MainActivity : AppCompatActivity() {
         stopService(serviceIntent)
 
         Toast.makeText(this, "监听服务已停止", Toast.LENGTH_SHORT).show()
-        btnStartService.isEnabled = true
-        btnStopService.isEnabled = false
     }
 
     override fun onResume() {
