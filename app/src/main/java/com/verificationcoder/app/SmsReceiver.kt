@@ -47,7 +47,11 @@ class SmsReceiver : BroadcastReceiver() {
                     val serviceIntent = Intent(context, SmsListenerService::class.java).apply {
                         putExtra("sms_body", messageBody)
                     }
-                    context.startService(serviceIntent)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        context.startForegroundService(serviceIntent)
+                    } else {
+                        context.startService(serviceIntent)
+                    }
                 }
             }
         }

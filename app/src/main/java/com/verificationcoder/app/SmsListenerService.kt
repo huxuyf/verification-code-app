@@ -39,17 +39,8 @@ class SmsListenerService : Service() {
             val verificationCode = VerificationCodeExtractor.extractCode(smsBody)
             if (!verificationCode.isNullOrEmpty()) {
                 Log.d(TAG, "提取到验证码: $verificationCode")
-                // 启动验证码显示Activity，可以在任何界面显示
-                val intent = Intent(this, VerifyCodeActivity::class.java).apply {
-                    putExtra("code", verificationCode)
-                    // 添加多个标志确保可以在任何界面显示
-                    addFlags(
-                        Intent.FLAG_ACTIVITY_NEW_TASK or
-                        Intent.FLAG_ACTIVITY_CLEAR_TOP or
-                        Intent.FLAG_ACTIVITY_SINGLE_TOP
-                    )
-                }
-                startActivity(intent)
+                // 启动悬浮窗，在任何界面显示
+                FloatingWindowManager.getInstance().showFloatingWindow(this, verificationCode)
             } else {
                 Log.d(TAG, "未找到验证码")
             }
