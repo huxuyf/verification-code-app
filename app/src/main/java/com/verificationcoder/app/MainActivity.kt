@@ -1,13 +1,21 @@
 package com.verificationcoder.app
 
 import android.Manifest
+import android.content.BroadcastReceiver
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.provider.Settings
-import android.widget.Button
+import android.view.View
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -16,35 +24,30 @@ import androidx.core.content.ContextCompat
 
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var tvStatus: TextView
-    private lateinit var btnRequestPermissions: Button
-    private lateinit var btnServiceToggle: Button
-
-    private val overlayPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) {
-        updatePermissionStatus()
-        if (checkOverlayPermission()) {
-            Toast.makeText(this, "悬浮窗权限已授予", Toast.LENGTH_SHORT).show()
-        } else {
-            Toast.makeText(this, "请授予悬浮窗权限", Toast.LENGTH_SHORT).show()
-        }
-    }
+    private lateinit var tvCode: TextView
+    private lateinit var tvHint: TextView
+    private lateinit var llCodeContainer: LinearLayout
+    private lateinit var tvCustomToast: TextView
+    
+    private var lastCode: String? = null
+    private val handler = Handler(Looper.getMainLooper())
 
     private val smsPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
-        val allGranted = permissions.values.all { it }
-        if (allGranted) {
-            Toast.makeText(this, "短信权限已授予", Toast.LENGTH_SHORT).show()
-            if (!checkOverlayPermission()) {
-                requestOverlayPermission()
-            } else {
-                updatePermissionStatus()
-            }
+        if (permissions.values.all { it }) {
+            startSmsService()
         } else {
-            Toast.makeText(this, "请授予短信权限", Toast.LENGTH_SHORT).show()
-            updatePermissionStatus()
+            showPermissionGuide()
+        }
+    }
+
+    private val codeReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val code = intent.getStringExtra("code")
+            if (!code.isNullOrEmpty()) {
+                updateCodeUi(code)
+            }
         }
     }
 
@@ -53,130 +56,103 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         initViews()
-        updatePermissionStatus()
+        checkAndRequestPermissions()
+        
+        // 注册广播监听新验证码
+        val filter = IntentFilter("com.verificationcoder.ACTION_NEW_CODE")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(codeReceiver, filter, RECEIVER_EXPORTED)
+        } else {
+            @Suppress("UnspecifiedRegisterReceiverFlag")
+            registerReceiver(codeReceiver, filter)
+        }
     }
 
     private fun initViews() {
-        tvStatus = findViewById(R.id.tvStatus)
-        btnRequestPermissions = findViewById(R.id.btnRequestPermissions)
-        btnServiceToggle = findViewById(R.id.btnServiceToggle)
+        tvCode = findViewById(R.id.tvCode)
+        tvHint = findViewById(R.id.tvHint)
+        llCodeContainer = findViewById(R.id.llCodeContainer)
+        tvCustomToast = findViewById(R.id.tvCustomToast)
 
-        btnRequestPermissions.setOnClickListener { requestAllPermissions() }
-        btnServiceToggle.setOnClickListener { toggleSmsListenerService() }
-    }
-
-    private fun updatePermissionStatus() {
-        val hasSmsPermission = checkSmsPermission()
-        val hasOverlayPermission = checkOverlayPermission()
-
-        val status = buildString {
-            append("权限状态:\n\n")
-            append("短信权限: ${if (hasSmsPermission) "✓ 已授予" else "✗ 未授予"}\n")
-            append("悬浮窗权限: ${if (hasOverlayPermission) "✓ 已授予" else "✗ 未授予"}\n\n")
-
-            if (hasSmsPermission && hasOverlayPermission) {
-                append("所有权限已授予，可以开始使用！")
-                btnRequestPermissions.isEnabled = false
-                btnServiceToggle.isEnabled = true
-                updateServiceToggleButton()
-            } else {
-                append("请授予所有权限后开始使用")
-                btnRequestPermissions.isEnabled = true
-                btnServiceToggle.isEnabled = false
-                btnServiceToggle.text = "开始监听"
-                btnServiceToggle.setBackgroundColor(0xFF4CAF50.toInt())
+        llCodeContainer.setOnClickListener {
+            lastCode?.let {
+                copyToClipboard(it)
+                showFastToast()
             }
         }
-
-        tvStatus.text = status
     }
 
-    private fun checkSmsPermission(): Boolean {
-        return ContextCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS) == PackageManager.PERMISSION_GRANTED &&
-                ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED
-    }
-
-    private fun checkOverlayPermission(): Boolean {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            Settings.canDrawOverlays(this)
-        } else {
-            true
-        }
-    }
-
-    private fun requestAllPermissions() {
-        val smsPermissions = arrayOf(
+    private fun checkAndRequestPermissions() {
+        val permissions = mutableListOf(
             Manifest.permission.RECEIVE_SMS,
             Manifest.permission.READ_SMS
         )
-        smsPermissionLauncher.launch(smsPermissions)
-    }
-
-    private fun requestOverlayPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val intent = Intent(
-                Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                Uri.parse("package:$packageName")
-            )
-            overlayPermissionLauncher.launch(intent)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissions.add(Manifest.permission.POST_NOTIFICATIONS)
         }
-    }
 
-    private fun isServiceRunning(): Boolean {
-        val manager = getSystemService(ACTIVITY_SERVICE) as android.app.ActivityManager
-        @Suppress("DEPRECATION")
-        for (service in manager.getRunningServices(Integer.MAX_VALUE)) {
-            if (SmsListenerService::class.java.name == service.service.className) {
-                return true
-            }
+        val missingPermissions = permissions.filter {
+            ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
         }
-        return false
-    }
 
-    private fun updateServiceToggleButton() {
-        if (isServiceRunning()) {
-            btnServiceToggle.text = "停止监听"
-            btnServiceToggle.setBackgroundColor(0xFFF44336.toInt()) // Red
+        if (missingPermissions.isEmpty()) {
+            startSmsService()
         } else {
-            btnServiceToggle.text = "开始监听"
-            btnServiceToggle.setBackgroundColor(0xFF4CAF50.toInt()) // Green
+            smsPermissionLauncher.launch(missingPermissions.toTypedArray())
         }
     }
 
-    private fun toggleSmsListenerService() {
-        if (isServiceRunning()) {
-            stopSmsListenerService()
-        } else {
-            startSmsListenerService()
-        }
-        updateServiceToggleButton()
-    }
-
-    private fun startSmsListenerService() {
-        if (!checkSmsPermission() || !checkOverlayPermission()) {
-            Toast.makeText(this, "请先授予所有权限", Toast.LENGTH_SHORT).show()
-            return
-        }
-
+    private fun startSmsService() {
         val serviceIntent = Intent(this, SmsListenerService::class.java)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             startForegroundService(serviceIntent)
         } else {
             startService(serviceIntent)
         }
-
-        Toast.makeText(this, "监听服务已启动", Toast.LENGTH_SHORT).show()
     }
 
-    private fun stopSmsListenerService() {
-        val serviceIntent = Intent(this, SmsListenerService::class.java)
-        stopService(serviceIntent)
+    private fun showPermissionGuide() {
+        Toast.makeText(this, "需要短信权限才能自动提取验证码，请在设置中开启", Toast.LENGTH_LONG).show()
+        handler.postDelayed({
+            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                data = Uri.fromParts("package", packageName, null)
+            }
+            startActivity(intent)
+        }, 2000)
+    }
 
-        Toast.makeText(this, "监听服务已停止", Toast.LENGTH_SHORT).show()
+    private fun updateCodeUi(code: String) {
+        lastCode = code
+        tvCode.text = code
+        tvHint.text = "最新验证码已自动复制"
+        // 自动收到时也抖动一下或显示提示？
+        showFastToast()
+    }
+
+    private fun copyToClipboard(text: String) {
+        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clip = ClipData.newPlainText("验证码", text)
+        clipboard.setPrimaryClip(clip)
+    }
+
+    private fun showFastToast() {
+        tvCustomToast.visibility = View.VISIBLE
+        handler.removeCallbacksAndMessages(null)
+        handler.postDelayed({
+            tvCustomToast.visibility = View.GONE
+        }, 500) // 0.5秒后消失
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterReceiver(codeReceiver)
     }
 
     override fun onResume() {
         super.onResume()
-        updatePermissionStatus()
+        // 每次回到前台静默检查下权限，如果补齐了就启动服务
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS) == PackageManager.PERMISSION_GRANTED) {
+            startSmsService()
+        }
     }
 }
