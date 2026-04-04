@@ -1,249 +1,109 @@
-# 安卓验证码短信弹窗助手
+# 安卓验证码短信弹窗助手 (沉浸式重构版)
 
-一款简洁实用的安卓应用，自动监听短信中的验证码并以悬浮窗形式显示，方便一键复制。
+一款极致简约、全自动的安卓验证码接收利器。通过实时监听短信，自动提取验证码并完成剪贴板同步，配合沉浸式大字体展示，让验证码接收变得顺滑且无感。
 
-> **注意**: 本项目已使用 Kotlin 语言重构，代码更简洁、更安全、更易维护。
+---
 
-## 功能特点
+## 🚀 核心特性
 
-- **自动监听短信**：实时监听手机接收的短信
-- **智能识别验证码**：自动提取短信中4-8位数字验证码
-- **关键词匹配**：识别包含"密码"或"验证码"的短信
-- **悬浮窗显示**：美观的悬浮窗界面，可拖动位置
-- **一键复制**：点击复制按钮即可复制验证码到剪贴板
-- **隐私保护**：仅在本地处理短信数据，不上传任何信息
-- **Kotlin 重构**：使用现代 Kotlin 语言开发，代码更简洁安全
+- **✨ 沉浸式展示**：摒弃传统弹窗，采用主界面 **50sp 超大字体** 居中展示，极速识别。
+- **📋 全自动复制**：监听到验证码后，后台静默将其写入系统剪贴板，收到即粘贴。
+- **⚡ 极速交互**：
+    - 点击展示区可再次手动复制。
+    - 伴随 **0.5s 精简提示**（Toast），无干扰反馈。
+- **🔒 安全与隐私**：
+    - **零权限冗余**：仅需短信与通知权限，已移除悬浮窗及其他敏感权限。
+    - **本地处理**：验证码提取完全在手机本地完成，不请求网络，不上传数据。
+- **🛠️ 自动化管理**：
+    - **启动即激活**：App 打开时自动申请权限，就绪后秒开监听服务。
+    - **后台保活**：前台服务确保在系统后台持续稳定运行。
 
-## Kotlin 重构优势
+---
 
-本项目已从 Java 重构为 Kotlin，带来以下优势：
+## 🛠️ 技术规格
 
-- **代码简洁**: 代码量减少约 15%，可读性显著提升
-- **空安全**: 编译时检查空指针，大幅减少运行时崩溃
-- **现代语法**: 使用扩展函数、Lambda 表达式等特性
-- **互操作性**: 完全兼容 Java 代码和库
-- **类型推断**: 减少冗余类型声明
-- **协程支持**: 为未来异步处理预留空间
+- **开发语言**: Kotlin (1.9.20+)
+- **系统要求**: Android 13 (API 33) 及以上（向下兼容需自行调整）
+- **构建工具**: Gradle 8.2.2, JDK 17
+- **权限需求**:
+    - `RECEIVE_SMS` / `READ_SMS` (必选)
+    - `POST_NOTIFICATIONS` (Android 13+ 必选)
+    - `FOREGROUND_SERVICE` (保活必选)
 
-## 系统要求
+---
 
-- Android 13 (API 33) 及以上版本
-- 支持安卓 13+ 的权限管理
+## 📦 构建与发布 (GitHub Actions)
 
-## 权限说明
+项目已集成完善的自动化构建流程，支持基于 **Git Tag** 的自动发布。
 
-应用需要以下权限才能正常工作：
-
-| 权限 | 用途 | 是否必需 |
-|------|------|----------|
-| RECEIVE_SMS | 接收短信广播 | 是 |
-| READ_SMS | 读取短信内容 | 是 |
-| SYSTEM_ALERT_WINDOW | 显示悬浮窗 | 是 |
-| FOREGROUND_SERVICE | 保持监听服务存活 | 否 |
-
-## 使用说明
-
-### 1. 安装应用
-
-将 APK 文件安装到您的 Android 设备上。
-
-### 2. 授予权限
-
-首次启动应用时，需要授予以下权限：
-
-#### 步骤一：授予短信权限
-1. 打开应用
-2. 点击"授予权限"按钮
-3. 在弹出的权限请求对话框中，选择"允许"
-
-#### 步骤二：授予悬浮窗权限
-1. 授予短信权限后，应用会自动请求悬浮窗权限
-2. 在系统设置页面，找到"验证码助手"应用
-3. 开启"在其他应用上层显示"权限
-
-### 3. 开始使用
-
-1. 权限授予完成后，点击"开始监听"按钮
-2. 应用会在后台运行，监听短信
-3. 当收到包含"验证码"或"密码"关键词的短信时，会自动弹出悬浮窗
-4. 点击"复制验证码"按钮即可复制验证码
-5. 点击右上角的"✕"按钮关闭悬浮窗
-
-### 4. 停止监听
-
-如需停止监听，点击"停止监听"按钮即可。
-
-## 验证码提取规则
-
-- 提取短信中连续的4-8位数字
-- 如果短信中有多组数字，默认取最后出现的一组
-- 只有包含"验证码"或"密码"关键词的短信才会触发弹窗
-
-## 项目结构
-
-```
-verification_code_app/
-├── app/
-│   ├── src/
-│   │   └── main/
-│   │       ├── java/com/verificationcoder/app/
-│   │       │   ├── MainActivity.kt                # 主界面Activity
-│   │       │   ├── SmsReceiver.kt                 # 短信接收器
-│   │       │   ├── SmsListenerService.kt          # 短信监听服务
-│   │       │   ├── FloatingWindowManager.kt       # 悬浮窗管理器
-│   │       │   ├── VerifyCodeActivity.kt          # 验证码显示Activity
-│   │       │   └── VerificationCodeExtractor.kt   # 验证码提取工具
-│   │       ├── res/
-│   │       │   ├── layout/
-│   │       │   │   ├── activity_main.xml          # 主界面布局
-│   │       │   │   ├── activity_verify_code.xml   # 验证码显示布局
-│   │       │   │   └── floating_window.xml        # 悬浮窗布局
-│   │       │   ├── drawable/                      # 图形资源
-│   │       │   ├── values/                        # 值资源
-│   │       │   └── mipmap-*/                      # 应用图标
-│   │       └── AndroidManifest.xml                 # 应用清单文件
-│   └── build.gradle                               # 应用级构建配置
-├── .github/workflows/                             # GitHub Actions配置
-│   ├── build-android.yml                          # 基础构建流程
-│   └── build-release.yml                          # 发布版本构建流程
-├── build.gradle                                   # 项目级构建配置
-└── settings.gradle                                # Gradle设置文件
+### 1. 触发构建
+推送以 `v` 开头的 Tag 即可触发发布流程：
+```bash
+git tag v2.0.0
+git push origin v2.0.0
 ```
 
-## 编译说明
+### 2. 自动化流程
+- 自动编译生成的 Release APK（支持签名）。
+- 自动在 GitHub 上创建 Release 并上传产物。
 
-### 方式一：使用 GitHub Actions 自动编译（推荐）
+---
 
-项目已配置 GitHub Actions，可以自动编译 APK 文件。
+## 🔐 签名与部署指南
 
-#### 快速开始
+为了使 APK 能够正常安装，建议配置签名信息。
 
-1. **将代码推送到 GitHub**
+### 本地签名 (Keytool)
+使用以下命令生成你的签名证书：
+```bash
+keytool -genkey -v -keystore release.keystore -alias your-alias -keyalg RSA -keysize 2048 -validity 10000
+```
 
-   使用提供的部署脚本：
+### GitHub 配置 (Secrets)
+若要利用 GitHub Actions 自动签名，请在仓库 `Settings > Secrets > Actions` 中添加：
+1. `KEYSTORE_BASE64`: 证书文件的 Base64 编码字符串。
+   - *获取方法*: `[Convert]::ToBase64String([IO.File]::ReadAllBytes("release.keystore"))` (PowerShell)
+2. `KEYSTORE_PASSWORD`: 密钥库密码。
+3. `KEY_ALIAS`: 密钥别名。
+4. `KEY_PASSWORD`: 密钥密码。
 
-   **Windows 用户：**
-   ```bash
-   deploy-to-github.bat
-   ```
+---
 
-   **Linux/Mac 用户：**
-   ```bash
-   chmod +x deploy-to-github.sh
-   ./deploy-to-github.sh
-   ```
+## 📂 项目结构
 
-2. **触发构建**
+```text
+verification-code-app/
+├── app/src/main/
+│   ├── java/.../app/
+│   │   ├── MainActivity.kt                # 沉浸式展示与权限引导
+│   │   ├── SmsListenerService.kt          # 后台监听与自动复制服务
+│   │   ├── SmsReceiver.kt                 # 短信广播接收器
+│   │   └── VerificationCodeExtractor.kt   # 验证码正则提取逻辑
+│   ├── res/layout/
+│   │   └── activity_main.xml              # 极简大字体布局
+│   └── AndroidManifest.xml                # 系统清单（极简权限声明）
+├── .github/workflows/                     # GitHub Actions (Release/Build)
+└── build.gradle                           # 构建配置 (SDK 34)
+```
 
-   推送代码后，GitHub Actions 会自动开始构建。
+---
 
-3. **下载 APK**
+## 📜 更新日志
 
-   - 访问 GitHub 仓库的 Actions 页面
-   - 选择最近的工作流运行
-   - 在 "Artifacts" 部分下载 APK 文件
+### v2.0.0 (2024-04-04) - **全案沉浸式重构**
+- **UI 革命**：移除所有按钮与复杂界面，改为大字体居中渲染模式。
+- **逻辑自动化**：实现静默自动复制验证码至剪贴板。
+- **架构瘦身**：彻底删除 `VerifyCodeActivity` 和 `FloatingWindowManager`（悬浮窗逻辑）。
+- **权限精简**：移除 `SYSTEM_ALERT_WINDOW` 和 `USE_FULL_SCREEN_INTENT` 权限。
+- **发布优化**：GitHub Actions 改为由 Tag 触发，不再依赖 main 分支提交。
 
-#### 详细的 GitHub Actions 使用说明
+### v1.x (2024-03)
+- 初始 Kotlin 版本。
+- 实现悬浮窗弹窗模式与权限请求。
+- 适配 Android 13 动态权限管理。
 
-请查看 [GITHUB_ACTIONS_GUIDE.md](GITHUB_ACTIONS_GUIDE.md) 了解：
-- 如何配置签名密钥
-- 如何手动触发构建
-- 如何通过标签创建 Release
-- 常见问题解答
+---
 
-### 方式二：本地编译
+## ⚖️ 许可证
 
-#### 环境要求
-
-- Android Studio Arctic Fox 或更高版本
-- JDK 17 或更高版本
-- Android SDK API 34
-- Kotlin 1.9.20
-
-#### 编译步骤
-
-1. 使用 Android Studio 打开项目
-2. 等待 Gradle 同步完成
-3. 点击 Build -> Build Bundle(s) / APK(s) -> Build APK(s)
-4. 编译完成后，APK 文件位于 `app/build/outputs/apk/` 目录
-
-#### 生成 Release 版本
-
-1. 在 `app/build.gradle` 中配置签名信息
-2. 点击 Build -> Generate Signed Bundle / APK
-3. 选择 APK，按照提示完成签名配置
-4. 选择 release 构建类型
-5. 生成签名的 APK 文件
-
-### 构建状态
-
-![Android CI](https://github.com/huxuyf/verification-code-app/actions/workflows/build-android.yml/badge.svg)
-
-## 注意事项
-
-1. **权限授予**：首次使用必须授予所有必需权限，否则应用无法正常工作
-2. **省电模式**：部分厂商的省电模式可能会限制后台服务，建议将应用添加到白名单
-3. **短信过滤**：应用只会处理包含"验证码"或"密码"关键词的短信
-4. **隐私安全**：应用不会收集、上传任何短信内容，所有数据仅在本地处理
-
-## 常见问题
-
-### Q: 为什么收到的验证码没有弹窗？
-
-A: 请检查以下几点：
-- 确认短信内容包含"验证码"或"密码"关键词
-- 确认已授予所有必需权限
-- 确认监听服务已启动
-- 检查系统省电模式是否限制了后台服务
-
-### Q: 悬浮窗无法显示？
-
-A: 请确认已授予"在其他应用上层显示"权限，并在系统设置中检查悬浮窗权限是否开启。
-
-### Q: 如何停止监听？
-
-A: 在主界面点击"停止监听"按钮即可停止监听服务。
-
-### Q: 应用会消耗很多电量吗？
-
-A: 应用采用轻量化的监听机制，只在收到短信时进行处理，不会持续占用CPU，电量消耗极低。
-
-## 技术实现
-
-- **开发语言**：Kotlin 1.9.20
-- **构建工具**：Gradle 8.2.2
-- **短信监听**：使用 BroadcastReceiver 监听系统短信广播
-- **验证码提取**：使用 Kotlin 正则表达式提取4-8位连续数字
-- **悬浮窗显示**：使用 WindowManager 和 TYPE_APPLICATION_OVERLAY 权限
-- **服务保活**：使用前台服务确保监听服务不被系统杀死
-- **权限管理**：使用 ActivityResultContracts 现代化权限请求
-- **空安全**：充分利用 Kotlin 空安全特性避免 NullPointerException
-- **协程支持**：为未来异步处理预留协程支持
-
-## 版本信息
-
-- 版本号：1.0
-- 最低 Android 版本：13 (API 33)
-- 目标 Android 版本：14 (API 34)
-- Kotlin 版本：1.9.20
-- Gradle 版本：8.2.2
-
-## 许可证
-
-本项目仅供学习和个人使用。
-
-## 更新日志
-
-### v1.0 (2024-03-31)
-- 初始版本发布
-- 实现短信监听功能
-- 实现验证码自动提取
-- 实现悬浮窗显示
-- 实现一键复制功能
-- 使用 Kotlin 语言重构
-- 优化代码结构和可维护性
-- 添加 GitHub Actions 自动构建支持
-
-## 联系方式
-
-如有问题或建议，请联系开发者。
+本项目仅供个人学习与技术研究使用。请在遵守当地法律法规的前提下使用短信监听功能。

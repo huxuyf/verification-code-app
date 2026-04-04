@@ -109,3 +109,6 @@ Thumbs.db
 !gradle/wrapper/gradle-wrapper.jar
 !gradle/wrapper/gradle-wrapper.properties
 .preferences
+
+# arts
+.arts
