@@ -82,8 +82,8 @@ class SmsListenerService : Service() {
             Notification.Builder(this)
         }
         return builder
-            .setContentTitle("验证码监听运行中")
-            .setContentText("正在自动提取并复制短信验证码")
+            .setContentTitle("验证码助手运行中")
+            .setContentText("正在自动提取短信验证码")
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setPriority(Notification.PRIORITY_LOW)
             .build()
